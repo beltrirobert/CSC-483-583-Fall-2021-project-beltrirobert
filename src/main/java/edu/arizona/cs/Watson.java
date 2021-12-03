@@ -227,7 +227,7 @@ public class Watson {
         int position = 1;
         // Loop through hits and print values
         for (ScoreDoc hit : hits) {
-            ResultClass result = new ResultClass();
+            Result result = new Result();
             int docId = hit.doc;
             float score = hit.score;
             Document doc = searcher.doc(docId);

@@ -46,7 +46,7 @@ Execute the code (from /CSC-483-583-Fall-2021-project-beltrirobert directory):
 
 	mvn exec:java -P main -e
 	
-Best score obtained (changing :
+Best score obtained:
 
 	MRR: 0.19373411
 	Overall Score: 19.373411%
