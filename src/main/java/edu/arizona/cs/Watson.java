@@ -187,11 +187,11 @@ public class Watson {
                     // Lowercase the line
                     line = line.toLowerCase();
 					
-					// Stemming the line
-					PorterStemmer stem = new PorterStemmer();
+					// Stemming the line (commented because it lowers the MRR to .1783)
+					/*PorterStemmer stem = new PorterStemmer();
 					stem.setCurrent(line);
 					stem.stem();
-					line = stem.getCurrent();
+					line = stem.getCurrent();*/
 					
 					// Lemmatize the line
                     String procInfo = procInfo(line);
@@ -222,7 +222,7 @@ public class Watson {
 
     //Query the information stored in the index
     private float answerQuery(String query, Directory index,String answer) throws IOException, ParseException {
-		// Stemming the query
+		// Stemming the query (commented because it lowers the MRR to .1783)
 		/*PorterStemmer stem = new PorterStemmer();
 		stem.setCurrent(query);
 		stem.stem();
