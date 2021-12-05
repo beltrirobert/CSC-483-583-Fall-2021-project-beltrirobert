@@ -21,11 +21,11 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.BooleanSimilarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.tartarus.snowball.ext.PorterStemmer;
 
 
 public class Watson {
@@ -91,8 +91,8 @@ public class Watson {
                 answer = answer.toLowerCase();
                 answer = answer.replaceAll("[^a-zA-Z0-9 ]", "");
                 checker = 0;
-                try {
-                    mrrs.add(watson.answerQuery(query, index, answer));
+                try {				
+                    mrrs.add(watson.answerQuery(query, index, answer));			
                 } catch (ParseException e) {
                     e.printStackTrace();
                     exit(1);
@@ -183,10 +183,19 @@ public class Watson {
                     if(line.equals("") || !line.matches(".*\\w.*")){
                         continue;
                     }
-                    // Lowercase and lemmatize the line
+					
+                    // Lowercase the line
                     line = line.toLowerCase();
-
+					
+					// Stemming the line
+					PorterStemmer stem = new PorterStemmer();
+					stem.setCurrent(line);
+					stem.stem();
+					line = stem.getCurrent();
+					
+					// Lemmatize the line
                     String procInfo = procInfo(line);
+					
                     // Append to info
                     info.append(" ");
                     info.append(procInfo);
@@ -199,7 +208,7 @@ public class Watson {
         return index;
     }
 
-    // Method to process info
+    // Method to process info (LEMMATIZE)
     private String procInfo(String info){
         String processedInfo = "";
         // Redwood is only to silence unnecessary nlp output
@@ -213,19 +222,30 @@ public class Watson {
 
     //Query the information stored in the index
     private float answerQuery(String query, Directory index,String answer) throws IOException, ParseException {
-        Query q = new QueryParser("info",analyzer).parse(query);
+		// Stemming the query
+		/*PorterStemmer stem = new PorterStemmer();
+		stem.setCurrent(query);
+		stem.stem();
+		query = stem.getCurrent();*/
+		
+		// Lemmatize the query for the search
+		props.setProperty("annotators", "tokenize,ssplit,pos,lemma");
+		String procQuery = procInfo(query);
+		
+        Query q = new QueryParser("info",analyzer).parse(procQuery);
         int hitsPerPage = 10;
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
-        // Set similarity to BM25, doesn't change overall MRR
-        //searcher.setSimilarity(new BM25Similarity());
         // Set similarity to Boolean Similarity, lowers overall MRR to .1883
         //searcher.setSimilarity(new BooleanSimilarity());
         TopDocs docs = searcher.search(q, hitsPerPage);
         ScoreDoc[] hits = docs.scoreDocs;
         float mrr = 0;
         int position = 1;
-        // Loop through hits and print values
+        // Loop through hits and print values	
+		if ((hits.length) == 0) {
+			System.out.println(q);	
+		}
         for (ScoreDoc hit : hits) {
             Result result = new Result();
             int docId = hit.doc;
